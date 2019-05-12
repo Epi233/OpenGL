@@ -5,6 +5,7 @@
 
 #define GLEW_STATIC
 #include <glew.h>
+#include <stdio.h>
 
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath) {
