@@ -25,4 +25,12 @@
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="src\fragmentSource.frag">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="src\vertexSource.vert">
+      <Filter>资源文件</Filter>
+    </None>
+  </ItemGroup>
 </Project>

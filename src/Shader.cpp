@@ -38,20 +38,24 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
 		vertexSource = vertexTmp.c_str();
 		fragmentSource = fragmentTmp.c_str();
 
-		//
+		/* 生成Shader，返回ID */
 		unsigned int vertex = glCreateShader(GL_VERTEX_SHADER);
 		unsigned int fragment = glCreateShader(GL_FRAGMENT_SHADER);
 
+		/* 向Shader中填充代码 */
+		// 第一个参数是Shader的ID， 第二个参数指填充进去的字符串个数
+		// 第三个参数就是字符串，第四个参数先不在意
 		glShaderSource(vertex, 1, &vertexSource, nullptr);
 		glShaderSource(fragment, 1, &fragmentSource, nullptr);
 
+		/* 编译 */
 		glCompileShader(vertex);
 		checkCompileErrors(vertex, "VERTEX");
 
 		glCompileShader(fragment);
 		checkCompileErrors(fragment, "FRAGMENT");
-		//
 
+		/* 组装Shader程序 */
 		ID = glCreateProgram();
 		glAttachShader(ID, vertex);
 		glAttachShader(ID, fragment);
@@ -65,10 +69,10 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath) {
 		printf(ex.what());
 	}
 
-
 }
 
 void Shader::use() {
+	/* 使用Shader */
 	glUseProgram(ID);
 }
 

@@ -26,6 +26,10 @@
     <ClInclude Include="src\Shader.h" />
     <ClInclude Include="src\stb_image.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="src\fragmentSource.frag" />
+    <None Include="src\vertexSource.vert" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{7F5CFDB5-B0AE-4CEA-9713-B6F587717DA3}</ProjectGuid>

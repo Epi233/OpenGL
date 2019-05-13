@@ -2,7 +2,7 @@
 #define SHADER
 #include <string>
 
-class Shader {
+class Shader final {
 public:
 	Shader(const char* vertexPath, const char* fragmentPath);
 	~Shader() = default;
