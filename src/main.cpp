@@ -16,7 +16,8 @@ void processInput(GLFWwindow *window) {
 
 int main() {
 
-	float vertices[] = {
+	float vertices[] = 
+	{
 		//     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
 			 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 右上
 			 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // 右下
@@ -24,10 +25,12 @@ int main() {
 			-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // 左上
 	};
 
-	unsigned int indices[] = {
+	unsigned int indices[] = 
+	{
 		0, 1, 2,
 		2, 3, 0
 	};
+
 	stbi_set_flip_vertically_on_load(true);
 	
 	glfwInit();
@@ -36,7 +39,8 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	GLFWwindow* window = glfwCreateWindow(800, 600, "XXX", nullptr, nullptr);
-	if (window == nullptr) {
+	if (window == nullptr) 
+	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
 		return -1;
@@ -46,7 +50,8 @@ int main() {
 	// init glew
 
 	glewExperimental = true;
-	if (glewInit() != GLEW_OK) {
+	if (glewInit() != GLEW_OK) 
+	{
 		std::cout << "Failed to create GLEW window" << std::endl;
 		glfwTerminate();
 		return -1;
@@ -101,11 +106,13 @@ int main() {
 
 	int width, height, numChannel;
 	unsigned char* data = stbi_load("./resource/container.jpg", &width, &height, &numChannel, 0);
-	if (data) {
+	if (data) 
+	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
-	else {
+	else 
+	{
 		std::cout << "Failed to load texture" << std::endl;
 	}
 	stbi_image_free(data);
@@ -116,11 +123,13 @@ int main() {
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, texBufferB);
 	data = stbi_load("./resource/face.png", &width, &height, &numChannel, 0);
-	if (data) {
+	if (data) 
+	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 	}
-	else {
+	else 
+	{
 		std::cout << "Failed to load texture" << std::endl;
 	}
 	stbi_image_free(data);
@@ -133,7 +142,8 @@ int main() {
 	testShader->setInt("ourFace", 3);
 
 
-	while (!glfwWindowShouldClose(window)) {
+	while (!glfwWindowShouldClose(window)) 
+	{
 		processInput(window);
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
