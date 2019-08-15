@@ -129,6 +129,7 @@ int main()
 
 	// 这个While循环是SFML的固定模式用于做事件处理
 	sf::Clock clock;
+	clock.restart();
 	while (window.isOpen())
 	{
 		// 内层While循环用于处理事件响应
@@ -142,8 +143,8 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		sf::Time elapsed = clock.restart();
-		float greenValue = (sin(elapsed.asMicroseconds()) / 2.0f) + 0.5f;
+		sf::Time elapsed = clock.getElapsedTime();
+		float greenValue = (sin(elapsed.asSeconds()) / 2.0f) + 0.5f;
 
 		testShader->setFloat("fragIn", greenValue);
 		// 绘制图形
