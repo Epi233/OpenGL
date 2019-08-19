@@ -4,8 +4,11 @@
 #include <sstream>
 #include <iostream>
 #include <glew/glew.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
-class Shader final 
+class Shader final
 {
 public:
 	Shader(const char* vertexPath, const char* fragmentPath)
@@ -24,7 +27,8 @@ public:
 		vertexFile.exceptions(std::ifstream::badbit | std::ifstream::failbit);
 		fragmentFile.exceptions(std::ifstream::badbit | std::ifstream::failbit);
 
-		try {
+		try
+		{
 			if (!vertexFile.is_open() || !fragmentFile.is_open())
 				throw std::exception("ERROR");
 			vertexSStream << vertexFile.rdbuf();
@@ -66,7 +70,7 @@ public:
 			glDeleteShader(vertex);
 			glDeleteShader(fragment);
 		}
-		catch (const std::exception &ex) 
+		catch (const std::exception& ex)
 		{
 			printf(ex.what());
 		}
@@ -80,19 +84,24 @@ public:
 		glUseProgram(ID);
 	}
 
-	void setBool(const std::string &name, bool value) const
+	void setBool(const std::string& name, bool value) const
 	{
-		glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+		glUniform1i(glGetUniformLocation(ID, name.c_str()), static_cast<int>(value));
 	}
 
-	void setInt(const std::string &name, int value) const
+	void setInt(const std::string& name, int value) const
 	{
 		glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
 	}
 
-	void setFloat(const std::string &name, float value) const
+	void setFloat(const std::string& name, float value) const
 	{
 		glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+	}
+
+	void setMat4fv(const std::string& name, glm::mat4 mat) const
+	{
+		glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, value_ptr(mat));
 	}
 
 private:
@@ -103,16 +112,20 @@ private:
 		int success;
 		char infoLog[1024];
 
-		if (type != "PROGRAM") {
+		if (type != "PROGRAM")
+		{
 			glGetShaderiv(id, GL_COMPILE_STATUS, &success);
-			if (!success) {
+			if (!success)
+			{
 				glGetShaderInfoLog(id, 1024, nullptr, infoLog);
 				std::cout << "Shader Compile Error : " << infoLog << std::endl;
 			}
 		}
-		else {
+		else
+		{
 			glGetProgramiv(id, GL_LINK_STATUS, &success);
-			if (!success) {
+			if (!success)
+			{
 				glGetProgramInfoLog(id, 1024, nullptr, infoLog);
 				std::cout << "Program Linking Error : " << infoLog << std::endl;
 			}

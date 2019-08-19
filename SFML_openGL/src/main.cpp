@@ -4,9 +4,13 @@
 #include <SFML/Window.hpp>
 #include <SFML/OpenGL.hpp>
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <SFML/Graphics/Image.hpp>
+
 #include "Shader.hpp"
+#include "Camera.hpp"
 
 int main()
 {
@@ -25,23 +29,63 @@ int main()
 	glewExperimental = GL_TRUE;
 	glewInit();
 
-	// 顶点数据
-	float vertices[] =
-	{
-		//     ---- 位置 ----       ---- 颜色 ----     - 纹理坐标 -
-			 0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // 右上
-			 0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // 右下
-			-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // 左下
-			-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // 左上
+	// data
+#pragma region Model Data
+
+	float vertices[] = {
+	-0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+	-0.5f,  0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+	-0.5f, -0.5f, -0.5f,  1.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+	-0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+	 0.5f, -0.5f,  0.5f,  0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+	 0.5f, -0.5f,  0.5f,  1.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+	-0.5f, -0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+	-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+	-0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+	 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+	 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+	 0.5f,  0.5f,  0.5f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+	-0.5f,  0.5f,  0.5f,  0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f, 0.0f, 1.0f
 	};
 
-	unsigned int indices[] =
-	{
-		0, 1, 2,
-		2, 3, 0
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
-	stbi_set_flip_vertically_on_load(true);
+#pragma endregion
+
 
 	glViewport(0, 0, 800, 600); // lower left
 
@@ -54,7 +98,7 @@ int main()
 
 	/* 产生VBO，绑定 */
 	unsigned int VBO;
-	glGenBuffers(1, &VBO);			// 第一个参数是生成多少个VAO，第二个参数是生成的ID返还到哪里
+	glGenBuffers(1, &VBO);			// 第一个参数是生成多少个VBO，第二个参数是生成的ID返还到哪里
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);		// 第一个参数是要绑定Array Buffer，第二个参数是绑定哪个VBO
 
 	/* 接下来将用户数据绑定到buffer */
@@ -63,12 +107,6 @@ int main()
 	// GL_DYNAMIC_DRAW 这样处理方式的数据一般经常变动
 	// GL_STREAM_DRAW 这种情况下数据每次绘制都会变
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	/* 产生EBO，绑定 */
-	unsigned int EBO;
-	glGenBuffers(1, &EBO);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	/* 链接顶点属性 */
 	// 第一个参数从第几个开始绘制， 第二个参数尺寸是多少， 第三个参数是什么类型
@@ -88,8 +126,13 @@ int main()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texBuffer);
 
-	int width, height, numChannel;
-	unsigned char* data = stbi_load("./resource/container.jpg", &width, &height, &numChannel, 0);
+	sf::Image image1;
+	image1.loadFromFile("./resource/container.jpg");
+	image1.flipVertically();
+	
+	int width = image1.getSize().x;
+	int height = image1.getSize().y;
+	const unsigned char* data = image1.getPixelsPtr();
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
@@ -99,7 +142,6 @@ int main()
 	{
 		std::cout << "Failed to load texture" << std::endl;
 	}
-	stbi_image_free(data);
 	// end - texture
 
 	// texture B
@@ -107,7 +149,14 @@ int main()
 	glGenTextures(1, &texBufferB);
 	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, texBufferB);
-	data = stbi_load("./resource/face.png", &width, &height, &numChannel, 0);
+
+	sf::Image image2;
+	image2.loadFromFile("./resource/face.png");
+	image2.flipVertically();
+	
+	width = image2.getSize().x;
+	height = image2.getSize().y;
+	data = image2.getPixelsPtr();
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
@@ -117,7 +166,6 @@ int main()
 	{
 		std::cout << "Failed to load texture" << std::endl;
 	}
-	stbi_image_free(data);
 	// end - texture B
 
 	/* 使用Shader */
@@ -127,6 +175,19 @@ int main()
 
 	window.setActive();
 
+	// Camera
+	Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::radians(-15.0f), glm::radians(180.0f), glm::vec3(0, 1.0f, 0));
+
+	glm::mat4 view = camera.getViewMatrix();
+
+	glm::mat4 projection(1.0f);
+	projection = glm::perspective(glm::radians(45.0f), 800.0f / 600, 0.1f, 100.0f);
+
+	//testShader->setMat4fv("model", model);
+	testShader->setMat4fv("view", view);
+	testShader->setMat4fv("projection", projection);
+	
+	glEnable(GL_DEPTH_TEST);
 	// 这个While循环是SFML的固定模式用于做事件处理
 	sf::Clock clock;
 	clock.restart();
@@ -141,14 +202,23 @@ int main()
 		}
 		
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		sf::Time elapsed = clock.getElapsedTime();
 		float greenValue = (sin(elapsed.asSeconds()) / 2.0f) + 0.5f;
 
 		testShader->setFloat("fragIn", greenValue);
 		// 绘制图形
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, (GLvoid*)0);
+		for (unsigned int i = 0; i < 10; i++)
+		{
+			glm::mat4 model(1.0f);
+			model = glm::translate(model, cubePositions[i]);
+			float angle = 20.0f * i;
+			model = glm::rotate(model, glm::radians(angle) * elapsed.asSeconds(), glm::vec3(1.0f, 0.3f, 0.5f));
+			testShader->setMat4fv("model", model);
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
 		window.display();
 	}

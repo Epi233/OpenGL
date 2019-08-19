@@ -17,6 +17,9 @@
     <ClInclude Include="src\Shader.hpp">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="src\Camera.hpp">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="GLSL\fragmentSource.frag">
