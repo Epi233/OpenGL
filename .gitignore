@@ -70,6 +70,12 @@ artifacts/
 *.svclog
 *.scc
 
+!sfml-window-s-d.pdb
+!sfml-audio-s-d.pdb
+!sfml-network-s-d.pdb
+!sfml-graphics-s-d.pdb
+!sfml-system-s-d.pdb
+
 # Chutzpah Test files
 _Chutzpah*
 
