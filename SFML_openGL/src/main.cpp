@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 #include <glew/glew.h>
 #include <SFML/Window.hpp>
@@ -12,8 +13,39 @@
 #include "Shader.hpp"
 #include "Camera.hpp"
 
+using std::cout;
+using std::endl;
+
+unsigned int loadImage(std::string s, int internalFormat, GLenum format, int textureSlot)
+{
+	unsigned int texBuffer;
+	glGenTextures(1, &texBuffer);
+
+	glActiveTexture(GL_TEXTURE0 + textureSlot);
+	glBindTexture(GL_TEXTURE_2D, texBuffer);
+
+	sf::Image image1;
+	image1.loadFromFile(s);
+	image1.flipVertically();
+
+	int width = image1.getSize().x;
+	int height = image1.getSize().y;
+	const unsigned char* data = image1.getPixelsPtr();
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	return texBuffer;
+}
+
 int main()
 {
+#pragma region Init
 	// 初始化Window窗口
 	sf::ContextSettings settings;
 	settings.depthBits = 24;
@@ -21,18 +53,27 @@ int main()
 
 	const unsigned int WIDTH = 800;
 	const unsigned int HEIGHT = 600;
+	const float W_H_ratio = static_cast<float>(WIDTH) / HEIGHT;
+	const float FOV = 45.0f;
 	const sf::String TITLE = "Modern OpenGL";
 	sf::Window window(sf::VideoMode(WIDTH, HEIGHT, 32), TITLE,
 		sf::Style::Titlebar | sf::Style::Close, settings);
 
-	// 初始化GLEW
+	window.setActive();
+	window.setMouseCursorVisible(false);
+	window.setMouseCursorGrabbed(true);
+
+	// 初始化GLEW 必须再窗口之后
 	glewExperimental = GL_TRUE;
 	glewInit();
+	glEnable(GL_DEPTH_TEST);
+	
+#pragma endregion 
 
-	// data
 #pragma region Model Data
 
-	float vertices[] = {
+	float vertices[] = 
+	{
 	-0.5f, -0.5f, -0.5f,  1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 	 0.5f, -0.5f, -0.5f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
 	 0.5f,  0.5f, -0.5f,  0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
@@ -71,7 +112,8 @@ int main()
 	-0.5f,  0.5f, -0.5f,  1.0f, 1.0f, 0.0f, 0.0f, 1.0f
 	};
 
-	glm::vec3 cubePositions[] = {
+	glm::vec3 cubePositions[] = 
+	{
 		glm::vec3(0.0f,  0.0f,  0.0f),
 		glm::vec3(2.0f,  5.0f, -15.0f),
 		glm::vec3(-1.5f, -2.2f, -2.5f),
@@ -86,11 +128,16 @@ int main()
 
 #pragma endregion
 
+	// camera
+	Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::radians(0.0f), glm::radians(180.0f), glm::vec3(0, 1.0f, 0));
 
 	glViewport(0, 0, 800, 600); // lower left
 
+	// shader
 	Shader* testShader = new Shader("GLSL/vertexSource.vert", "GLSL/fragmentSource.frag");
-
+	
+	
+#pragma region VAO&VBO
 	/* 产生VAO，绑定 */
 	unsigned int VAO;
 	glGenVertexArrays(1, &VAO);		// 第一个参数是生成多少个VAO，第二个参数是生成的ID返还到哪里
@@ -119,78 +166,26 @@ int main()
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
+#pragma endregion
 
-	// texture 1
-	unsigned int texBuffer;
-	glGenTextures(1, &texBuffer);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texBuffer);
-
-	sf::Image image1;
-	image1.loadFromFile("./resource/container.jpg");
-	image1.flipVertically();
+	// texture
+	unsigned int texture_buffer_0 = loadImage("./resource/container.jpg", GL_RGB, GL_RGB, 0);
+	unsigned int texture_buffer_1 = loadImage("./resource/face.png", GL_RGBA, GL_RGBA, 3);
 	
-	int width = image1.getSize().x;
-	int height = image1.getSize().y;
-	const unsigned char* data = image1.getPixelsPtr();
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	// end - texture
-
-	// texture B
-	unsigned int texBufferB;
-	glGenTextures(1, &texBufferB);
-	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D, texBufferB);
-
-	sf::Image image2;
-	image2.loadFromFile("./resource/face.png");
-	image2.flipVertically();
-	
-	width = image2.getSize().x;
-	height = image2.getSize().y;
-	data = image2.getPixelsPtr();
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	// end - texture B
-
-	/* 使用Shader */
-	testShader->use();
-	testShader->setInt("ourTexture", 0);
-	testShader->setInt("ourFace", 3);
-
-	window.setActive();
-
-	// Camera
-	Camera camera(glm::vec3(0.0f, 0.0f, 3.0f), glm::radians(-15.0f), glm::radians(180.0f), glm::vec3(0, 1.0f, 0));
-
+#pragma region MVP matrices
+	glm::mat4 model(1.0f);
 	glm::mat4 view = camera.getViewMatrix();
-
 	glm::mat4 projection(1.0f);
-	projection = glm::perspective(glm::radians(45.0f), 800.0f / 600, 0.1f, 100.0f);
-
-	//testShader->setMat4fv("model", model);
-	testShader->setMat4fv("view", view);
-	testShader->setMat4fv("projection", projection);
+	projection = glm::perspective(glm::radians(FOV), W_H_ratio, 0.1f, 100.0f);
 	
-	glEnable(GL_DEPTH_TEST);
+#pragma endregion 
+	
+	
 	// 这个While循环是SFML的固定模式用于做事件处理
 	sf::Clock clock;
-	clock.restart();
+	float mouse_x = 0;
+	float mouse_y = 0;
+	bool mouse_first = true;
 	while (window.isOpen())
 	{
 		// 内层While循环用于处理事件响应
@@ -199,24 +194,58 @@ int main()
 		{
 			if (event.type == sf::Event::Closed)
 				window.close();
+			if (event.type == sf::Event::MouseMoved)
+			{
+				if (mouse_first)
+				{
+					mouse_x = event.mouseMove.x;
+					mouse_y = event.mouseMove.y;
+					mouse_first = false;
+				}
+				auto[x, y] = event.mouseMove;
+				float x_offset = mouse_x - x;
+				float y_offset = y - mouse_y;
+				cout << x << " " << y << " " << x_offset << " " << y_offset << endl;
+				camera.ProcessMouseMovement(x_offset, y_offset);
+				view = camera.getViewMatrix();
+				mouse_x = x;
+				mouse_y = y;
+			}
 		}
-		
+
+		// 清屏
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		// 处理
 		sf::Time elapsed = clock.getElapsedTime();
 		float greenValue = (sin(elapsed.asSeconds()) / 2.0f) + 0.5f;
-
-		testShader->setFloat("fragIn", greenValue);
+		
 		// 绘制图形
 		for (unsigned int i = 0; i < 10; i++)
 		{
-			glm::mat4 model(1.0f);
-			model = glm::translate(model, cubePositions[i]);
+			
+			// Set Model Matrix
+			model = glm::translate(glm::mat4(1.0f), cubePositions[i]);
 			float angle = 20.0f * i;
 			model = glm::rotate(model, glm::radians(angle) * elapsed.asSeconds(), glm::vec3(1.0f, 0.3f, 0.5f));
+			// Set View Matrix
+			// Set Projection Matrix
+			
+			// Set Material -> Shader Program
+			testShader->use();
+			// Set Material -> Textures
+			// Set Material -> Uniforms
+			testShader->setInt("ourTexture", 0);
+			testShader->setInt("ourFace", 3);
+			testShader->setFloat("fragIn", greenValue);
 			testShader->setMat4fv("model", model);
+			testShader->setMat4fv("view", view);
+			testShader->setMat4fv("projection", projection);
 
+			
+
+			// Draw Call
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
@@ -224,8 +253,12 @@ int main()
 	}
 	// 释放资源
 
+	delete testShader;
+
 	glDeleteBuffers(1, &VBO);
 	glDeleteVertexArrays(1, &VAO);
 
 	return EXIT_SUCCESS;
 }
+
+
